@@ -130,16 +130,15 @@ def run_clang_format_diff(args, file):
     try:
         with io.open(file, 'r', encoding='utf-8') as f:
             original = f.readlines()
-    except IOError as exc:
+    except IOError as ioerr:
+        raise DiffError(str(ioerr))
+    except UnicodeDecodeError as uderr1:
         try:
             with io.open(file, 'r', encoding='utf-8-sig') as f:
                 original = f.readlines()
-        except IOError as exc:
-            try:
-                with io.open(file, 'r', encoding='cp1252') as f:
-                    original = f.readlines()
-            except IOError as exc:
-                raise DiffError(str(exc))
+        except UnicodeDecodeError as uderr2:
+            raise DiffError(str(uderr2))
+
     invocation = [args.clang_format_executable, file]
     if args.style:
         invocation.append('-style=' + args.style)
